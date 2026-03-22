@@ -51,14 +51,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Vérifier les conflits de dates
-    const { data: overlapping } = await supabaseAdmin
+   const { data: overlapping } = await supabaseAdmin
       .from('reservations')
       .select('id')
       .eq('property_id', propertyId)
-      .or(`check_in.lte.${checkOut.toISOString()},check_out.gte.${checkIn.toISOString()}`);
+      .lt('check_in', checkOut.toISOString())
+      .gt('check_out', checkIn.toISOString());
 
-    const conflicts = overlapping?.filter(b => b) || [];
-    if (conflicts.length > 0) {
+const conflicts = overlapping || [];
+if (conflicts.length > 0) {
       return NextResponse.json({ success: false, error: 'Propriété non disponible pour ces dates' }, { status: 400 });
     }
 
