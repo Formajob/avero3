@@ -31,18 +31,15 @@ export function BookingSection() {
   const [loading, setLoading] = useState(true);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [isBookingFormOpen, setIsBookingFormOpen] = useState(false);
-
-  // Filters
-  const [cityFilter, setCityFilter] = useState('');
+  const [cityFilter, setCityFilter] = useState('all');
   const [guestsFilter, setGuestsFilter] = useState('');
 
-  // Cities list
   const cities = ['Marrakech', 'Casablanca', 'Fès', 'Tanger', 'Rabat'];
 
-  // Fetch properties
+  // Fetch au chargement uniquement
   useEffect(() => {
     fetchProperties();
-  }, [cityFilter, guestsFilter]);
+  }, []);
 
   const fetchProperties = async () => {
     setLoading(true);
@@ -51,23 +48,14 @@ export function BookingSection() {
       if (cityFilter && cityFilter !== 'all') params.append('city', cityFilter);
       if (guestsFilter) params.append('maxGuests', guestsFilter);
 
-      console.log('Fetching properties with params:', params.toString());
       const response = await fetch(`/api/properties?${params.toString()}`);
       const data = await response.json();
 
-      console.log('Properties response:', data);
-
       if (data.success) {
         setProperties(data.properties);
-        console.log(`Loaded ${data.properties.length} properties`);
-        if (data.usingFallback) {
-          console.warn('⚠️ Using fallback sample data');
-        }
-      } else {
-        console.error('Failed to fetch properties:', data.error);
       }
     } catch (error) {
-      console.error('Error fetching properties:', error);
+      console.error('Erreur:', error);
     } finally {
       setLoading(false);
     }
@@ -104,16 +92,14 @@ export function BookingSection() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>{t('booking.filterCity')}</Label>
-                <Select value={cityFilter || 'all'} onValueChange={setCityFilter}>
+                <Select value={cityFilter} onValueChange={setCityFilter}>
                   <SelectTrigger>
                     <SelectValue placeholder={t('booking.allCities')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">{t('booking.allCities')}</SelectItem>
                     {cities.map((city) => (
-                      <SelectItem key={city} value={city}>
-                        {city}
-                      </SelectItem>
+                      <SelectItem key={city} value={city}>{city}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -165,7 +151,6 @@ export function BookingSection() {
         </div>
       </div>
 
-      {/* Booking Form Dialog */}
       <BookingForm
         isOpen={isBookingFormOpen}
         onClose={handleBookingClose}
